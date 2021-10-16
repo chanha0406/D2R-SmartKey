@@ -1,12 +1,30 @@
-﻿SetWorkingDir %A_ScriptDir%
+﻿#NoTrayIcon 
+#SingleInstance
+#KeyHistory 0 
+#NoEnv
+
+LOCAL_VERSION = 1.5
+
+ListLines, Off 
+SETCONTROLDELAY, -1
+SetDefaultMouseSpeed, 1
+SETWINDELAY, -1
+SETKEYDELAY, -1
+SETMOUSEDELAY, -1
+SETBATCHLINES, -1
+
+SetWorkingDir %A_ScriptDir%
 
 IniRead, LeftClick, setting.ini, setting, LeftClick
 IniRead, LeftShift, setting.ini, setting, LeftShift
 IniRead, RightClick, setting.ini, setting, RightClick
 IniRead, RightShift, setting.ini, setting, RightShift
+IniRead, ShiftKey, setting.ini, setting, ShiftKey
 IniRead, BuffKey, setting.ini, setting, BuffKey
 IniRead, SwapKey, setting.ini, setting, SwapKey
 IniRead, CallToKey, setting.ini, setting, CallToKey
+IniRead, DelayTime, setting.ini, setting, DelayTime
+IniRead, RestartKey, setting.ini, setting, RestartKey
 
 Gui, Add, Button, x10 y10 w70 h20 vRunBtn gRunFunc , 실행
 Gui, Add, Button, x90 y10 w70 h20 Disabled vPauseBtn gPauseFunc  , 정지
@@ -24,24 +42,33 @@ Gui, Add, Edit, x110 y100 w180 h20 Uppercase vRightClickE, %RightClick%
 Gui, Add, Text, x10 y130 w100 h20 0x200 +Center, RClick+Shift
 Gui, Add, Edit, x110 y130 w180 h20 Uppercase vRightShiftE, %RightShift%
 
+Gui, Add, Text, x10 y160 w100 h20 0x200 +Center, Shift
+Gui, Add, Edit, x110 y160 w180 h20 Uppercase vShiftE, %ShiftKey%
 
-Gui, Add, Text, x10 y160 w280 h20 0x200 +Center, Key Setting
+Gui, Add, Text, x10 y190 w280 h20 0x200 +Center, Buff Setting (Delay ms)
 
-Gui, Add, Text, x10 y190 w50 h20 0x200 +Center, Buff
-Gui, Add, Edit, x70 y190 w75 h20 Uppercase vBuffE, %BuffKey%
+Gui, Add, Text, x10 y220 w50 h20 0x200 +Center, Buff
+Gui, Add, Edit, x70 y220 w75 h20 Uppercase vBuffE, %BuffKey%
 
-Gui, Add, Text, x10 y220 w50 h20 0x200 +Center, Swap
-Gui, Add, Edit, x70 y220 w75 h20 Uppercase vSwapE, %SwapKey%
+Gui, Add, Text, x155 y220 w50 h20 0x200 +Center, Delay
+Gui, Add, Edit, x215 y220 w75 h20 Number vDelayE, %DelayTime%
 
-Gui, Add, Text, x155 y220 w50 h20 0x200 +Center, CallTo
-Gui, Add, Edit, x215 y220 w75 h20 Uppercase vCallToE, %CallToKey%
+Gui, Add, Text, x10 y250 w50 h20 0x200 +Center, Swap
+Gui, Add, Edit, x70 y250 w75 h20 Uppercase vSwapE, %SwapKey%
 
-Gui, Show, w300 h250, D2R SmartKey
+Gui, Add, Text, x155 y250 w50 h20 0x200 +Center, CallTo
+Gui, Add, Edit, x215 y250 w75 h20 Uppercase vCallToE, %CallToKey%
+
+Gui, Add, Text, x10 y280 w280 h20 0x200 +Center, Global Setting
+
+Gui, Add, Text, x10 y310 w50 h20 0x200 +Center, Restart
+Gui, Add, Edit, x70 y310 w75 h20 Uppercase vRestartE, %RestartKey%
+
+Gui, Show, w300 h340, D2RSK %LOCAL_VERSION% by YouCha
 
 Suspend, on
 
 Hotkey, Pause, PauseFunc
-; Esc::ExitApp
 
 Return
 
@@ -49,15 +76,7 @@ PauseFunc:
 Suspend,Toggle
 
 if (A_IsSuspended) {
-    GuiControl, Disabled, PauseBtn
-    GuiControl, Enabled, RunBtn
-    GuiControl, Enabled, LeftClickE
-    GuiControl, Enabled, LeftShiftE
-    GuiControl, Enabled, RightClickE
-    GuiControl, Enabled, RightShiftE
-    GuiControl, Enabled, BuffE
-    GuiControl, Enabled, SwapE
-    GuiControl, Enabled, CallToE
+    PauseTool()
 }
 else {
     Goto RunFunc
@@ -67,55 +86,82 @@ Return
 
 
 RunFunc:
+for index, key in ExistKey
+{
+    Hotkey, IfWinActive, ahk_exe D2R.exe
+    Hotkey, %key%, Off, UseErrorLevel
+}
+
 ExistKey := []
-Loop, parse, LeftClickE, `,
-    Hotkey, %A_LoopField%, Off, UseErrorLevel
-
-Loop, parse, LeftShiftE, `,
-    Hotkey, %A_LoopField%, Off, UseErrorLevel
-
-Loop, parse, RightClickE, `,
-    Hotkey, %A_LoopField%, Off, UseErrorLevel
-
-Loop, parse, RightShiftE, `,
-    Hotkey, %A_LoopField%, Off, UseErrorLevel
-
-Hotkey, %BuffE% , Off, UseErrorLevel
 
 Gui, Submit, NoHide
 
-SetHotkey(LeftClickE, func("LClick"), ExistKey)
-SetHotkey(LeftShiftE, func("ShiftLClick"), ExistKey )
-SetHotkey(RightClickE, func("RClick"), ExistKey )
-SetHotkey(RightShiftE, func("ShiftRClick"), ExistKey)
+checkUsed(LeftClickE, ExistKey)
+checkUsed(LeftShiftE, ExistKey)
+checkUsed(RightClickE, ExistKey)
+checkUsed(RightShiftE, ExistKey)
+; SetHotkey(LeftClickE, func("LClick"), ExistKey)
+; SetHotkey(LeftShiftE, func("ShiftLClick"), ExistKey )
+; SetHotkey(RightClickE, func("RClick"), ExistKey )
+; SetHotkey(RightShiftE, func("ShiftRClick"), ExistKey)
+SetHotkey(ShiftE, func("Shift"), ExistKey)
 
 checkUsed(BuffE, ExistKey)
 checkUsed(swapE, ExistKey)
 checkUsed(CallToE, ExistKey)
+checkUsed(RestartE, ExistKey)
 
-buffFunc := Func("Buff").Bind(swapE, CallToE)
+buffFunc := Func("Buff").Bind(swapE, CallToE, DelayE)
 
-
+Hotkey, IfWinActive, ahk_exe D2R.exe
 Hotkey, % BuffE, % buffFunc, UseErrorLevel
 if not(ErrorLevel = 0){
     GuiControl, , BuffE,
 }
 else{
     Hotkey, %BuffE% , On
+    ExistKey.Push(BuffE)
+
 }
 
+Hotkey, IfWinActive
+Hotkey, ~%RestartE%, PauseFunc, UseErrorLevel
+if not(ErrorLevel = 0){
+    GuiControl, , RestartE,
+}
+else{
+    Hotkey, ~%RestartE% , On
+    ExistKey.Push(RestartE)
+}
 
-GuiControl, Enabled, PauseBtn
-GuiControl, Disabled, RunBtn
-GuiControl, Disabled, LeftClickE
-GuiControl, Disabled, LeftShiftE
-GuiControl, Disabled, RightClickE
-GuiControl, Disabled, RightShiftE
-GuiControl, Disabled, BuffE
-GuiControl, Disabled, SwapE
-GuiControl, Disabled, CallToE
+ResumeTool()
 
-Suspend, Off
+Sleep, 500
+
+Loop
+{
+    DoKeyState(LeftClickE, func("LClick"))
+    DoKeyState(LeftShiftE, func("ShiftLClick") )
+    DoKeyState(RightClickE, func("RClick") )
+    DoKeyState(RightShiftE, func("ShiftRClick"))
+
+    if GetKeyState(RestartE, "P") {
+        PauseTool()
+        break
+    }
+
+    if GetKeyState("PAUSE", "P") {
+        PauseTool()
+        break
+    }
+
+    if A_IsSuspended {
+        PauseTool()
+        break
+    }
+
+    Sleep, 10
+}
 
 Return
 
@@ -126,57 +172,102 @@ IniWrite, %LeftClickE%, setting.ini, setting, LeftClick
 IniWrite, %LeftShiftE%, setting.ini, setting, LeftShift
 IniWrite, %RightClickE%, setting.ini, setting, RightClick
 IniWrite, %RightShiftE%, setting.ini, setting, RightShift
+IniWrite, %ShiftE%, setting.ini, setting, ShiftKey
 IniWrite, %BuffE%, setting.ini, setting, BuffKey
 IniWrite, %SwapE%, setting.ini, setting, SwapKey
 IniWrite, %CallToE%, setting.ini, setting, CallToKey
+IniWrite, %DelayE%, setting.ini, setting, DelayTime
+IniWrite, %RestartE%, setting.ini, setting, RestartKey
+
 
 GuiControl, , LeftClickE, %LeftClickE%
 GuiControl, , LeftShiftE, %LeftShiftE%
 GuiControl, , RightClickE, %RightClickE%
 GuiControl, , RightShiftE, %RightShiftE%
+GuiControl, , ShiftE, %ShiftE%
 GuiControl, , BuffE, %BuffE%
 GuiControl, , SwapE, %SwapE%
 GuiControl, , CallToE, %CallToE%
+GuiControl, , DelayE, %DelayE%
+GuiControl, , RestartE, %RestartE%
 
-
-MsgBox, 저장됨.
+MsgBox, 0x1000, , 저장됨.
 
 Return
 
-Buff(swap, callTo) {
-    Send {%swap%}
+PauseTool() {
+    global
+    GuiControl, Disabled, PauseBtn
+    GuiControl, Enabled, RunBtn
+    GuiControl, Enabled, LeftClickE
+    GuiControl, Enabled, LeftShiftE
+    GuiControl, Enabled, RightClickE
+    GuiControl, Enabled, RightShiftE
+    GuiControl, Enabled, ShiftE
+    GuiControl, Enabled, BuffE
+    GuiControl, Enabled, SwapE
+    GuiControl, Enabled, CallToE
+    GuiControl, Enabled, DelayE
+    GuiControl, Enabled, RestartE
+
+    Suspend, On
+}
+
+ResumeTool() {
+    global
+    GuiControl, Enabled, PauseBtn
+    GuiControl, Disabled, RunBtn
+    GuiControl, Disabled, LeftClickE
+    GuiControl, Disabled, LeftShiftE
+    GuiControl, Disabled, RightClickE
+    GuiControl, Disabled, RightShiftE
+    GuiControl, Disabled, ShiftE
+    GuiControl, Disabled, BuffE
+    GuiControl, Disabled, SwapE
+    GuiControl, Disabled, CallToE
+    GuiControl, Disabled, DelayE
+    GuiControl, Disabled, RestartE
+
+    Suspend, Off
+}
+
+Buff(swap, callTo, Delay) {
+    Send, {%swap%}
     Loop, parse, callTo, `, 
     {
-        Sleep, 100
-        Send {%A_LoopField%}
-        MouseClick, Right
+        Sleep, Delay
+        Send, {%A_LoopField%}
+        Send, {RButton down}
+        Send, {RButton up}
     }
-    Sleep, 400
-    Send {%swap%}
+    Sleep, Delay
+    Send, {%swap%}
 }
 
 LClick(){
-    Send, {%A_ThisHotkey%}
-    MouseClick, Left
+    MOUSECLICK , LEFT,
 }
 
 ShiftLClick(){
-    Send, {%A_ThisHotkey%}
-    send, {ShiftDown}
-    MouseClick, Left
-    send, {ShiftUp}
+    Send, {Shift down}
+    MOUSECLICK , LEFT,
+    Send, {Shift up}
 }
 
 RClick(){
-    Send, {%A_ThisHotkey%}
-    MouseClick, Right
+    MOUSECLICK , RIGHT,
 }
 
 ShiftRClick(){
+    Send, {Shift down}
+    MOUSECLICK , RIGHT,
+    Send, {Shift up}
+}
+
+Shift(){
+    Send, {Shift down}
     Send, {%A_ThisHotkey%}
-    send, {ShiftDown}
-    MouseClick, Right
-    send, {ShiftUp}
+    Send, {Shift up}
 }
 
 SetHotkey(ByRef editer, func, ExistKey){
@@ -190,13 +281,23 @@ SetHotkey(ByRef editer, func, ExistKey){
                 StringReplace, tempEdit, tempEdit, %A_LoopField%, , All
             else if ErrorLevel in 0
                 Hotkey, %A_LoopField%, On
-            ExistKey.Push(A_LoopField)
+                ExistKey.Push(A_LoopField)
         }
         else{
             StringReplace, tempEdit, tempEdit, %A_LoopField%, , All
         }
     }
     GuiControl, , editer, % StringFormat(tempEdit)
+}
+
+DoKeyState(ByRef editer, func) {
+    Loop, parse, editer, `,
+    {
+        ; IfWinActive ahk_exe D2R.exe
+        if GetKeyState(A_LoopField, "P"){
+            %func%()
+        }
+    }
 }
 
 StringFormat(string){
