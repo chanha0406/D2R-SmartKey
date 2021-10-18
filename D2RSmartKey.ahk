@@ -1,5 +1,5 @@
 ﻿#NoTrayIcon 
-#SingleInstance
+#SingleInstance Off
 #KeyHistory 0 
 #NoEnv
 
@@ -100,10 +100,7 @@ checkUsed(LeftClickE, ExistKey)
 checkUsed(LeftShiftE, ExistKey)
 checkUsed(RightClickE, ExistKey)
 checkUsed(RightShiftE, ExistKey)
-; SetHotkey(LeftClickE, func("LClick"), ExistKey)
-; SetHotkey(LeftShiftE, func("ShiftLClick"), ExistKey )
-; SetHotkey(RightClickE, func("RClick"), ExistKey )
-; SetHotkey(RightShiftE, func("ShiftRClick"), ExistKey)
+
 SetHotkey(ShiftE, func("Shift"), ExistKey)
 
 checkUsed(BuffE, ExistKey)
@@ -293,7 +290,7 @@ SetHotkey(ByRef editer, func, ExistKey){
 DoKeyState(ByRef editer, func) {
     Loop, parse, editer, `,
     {
-        ; IfWinActive ahk_exe D2R.exe
+        IfWinActive ahk_exe D2R.exe
         if GetKeyState(A_LoopField, "P"){
             %func%()
         }
