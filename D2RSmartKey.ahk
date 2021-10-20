@@ -3,7 +3,7 @@
 #KeyHistory 0 
 #NoEnv
 
-LOCAL_VERSION = 1.6
+LOCAL_VERSION = 1.7
 
 ListLines, Off 
 SETCONTROLDELAY, -1
@@ -109,6 +109,7 @@ Gui, Submit, NoHide
 ; checkUsed(RightShiftE, ExistKey)
 
 SetHotkey(ShiftE, func("Shift"), ExistKey)
+
 SetCombineKey(BindE, ExistKey)
 
 checkUsed(BuffE, ExistKey)
@@ -229,14 +230,13 @@ SetCombineKey(ByRef editer, ExistKey) {
 
         func := func("SendKeys").bind(chunk)
         if not (hasValue(ExistKey, keyButton)){
-
             Hotkey, IfWinActive, ahk_exe D2R.exe
             Hotkey, % keyButton, %func%, UseErrorLevel
             if ErrorLevel in 2
                 StringReplace, tempEdit, tempEdit, %A_LoopField%, , All
             else if ErrorLevel in 0
                 Hotkey, %keyButton%, On
-                ExistKey.Push(A_LoopField)
+                ExistKey.Push(keyButton)
         }
         else{
             StringReplace, tempEdit, tempEdit, %A_LoopField%, , All
