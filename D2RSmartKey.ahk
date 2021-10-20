@@ -3,7 +3,7 @@
 #KeyHistory 0 
 #NoEnv
 
-LOCAL_VERSION = 1.5
+LOCAL_VERSION = 1.6
 
 ListLines, Off 
 SETCONTROLDELAY, -1
@@ -25,6 +25,7 @@ IniRead, SwapKey, setting.ini, setting, SwapKey
 IniRead, CallToKey, setting.ini, setting, CallToKey
 IniRead, DelayTime, setting.ini, setting, DelayTime
 IniRead, RestartKey, setting.ini, setting, RestartKey
+IniRead, BindKey, setting.ini, setting, BindKey
 
 Gui, Add, Button, x10 y10 w70 h20 vRunBtn gRunFunc , 실행
 Gui, Add, Button, x90 y10 w70 h20 Disabled vPauseBtn gPauseFunc  , 정지
@@ -45,26 +46,29 @@ Gui, Add, Edit, x110 y130 w180 h20 Uppercase vRightShiftE, %RightShift%
 Gui, Add, Text, x10 y160 w100 h20 0x200 +Center, Shift
 Gui, Add, Edit, x110 y160 w180 h20 Uppercase vShiftE, %ShiftKey%
 
-Gui, Add, Text, x10 y190 w280 h20 0x200 +Center, Buff Setting (Delay ms)
+Gui, Add, Text, x10 y190 w100 h20 0x200 +Center, Bind
+Gui, Add, Edit, x110 y190 w180 h20 Uppercase vBindE, %BindKey%
 
-Gui, Add, Text, x10 y220 w50 h20 0x200 +Center, Buff
-Gui, Add, Edit, x70 y220 w75 h20 Uppercase vBuffE, %BuffKey%
+Gui, Add, Text, x10 y220 w280 h20 0x200 +Center, Buff Setting (Delay ms)
 
-Gui, Add, Text, x155 y220 w50 h20 0x200 +Center, Delay
-Gui, Add, Edit, x215 y220 w75 h20 Number vDelayE, %DelayTime%
+Gui, Add, Text, x10 y250 w50 h20 0x200 +Center, Buff
+Gui, Add, Edit, x70 y250 w75 h20 Uppercase vBuffE, %BuffKey%
 
-Gui, Add, Text, x10 y250 w50 h20 0x200 +Center, Swap
-Gui, Add, Edit, x70 y250 w75 h20 Uppercase vSwapE, %SwapKey%
+Gui, Add, Text, x155 y250 w50 h20 0x200 +Center, Delay
+Gui, Add, Edit, x215 y250 w75 h20 Number vDelayE, %DelayTime%
 
-Gui, Add, Text, x155 y250 w50 h20 0x200 +Center, CallTo
-Gui, Add, Edit, x215 y250 w75 h20 Uppercase vCallToE, %CallToKey%
+Gui, Add, Text, x10 y280 w50 h20 0x200 +Center, Swap
+Gui, Add, Edit, x70 y280 w75 h20 Uppercase vSwapE, %SwapKey%
 
-Gui, Add, Text, x10 y280 w280 h20 0x200 +Center, Global Setting
+Gui, Add, Text, x155 y280 w50 h20 0x200 +Center, CallTo
+Gui, Add, Edit, x215 y280 w75 h20 Uppercase vCallToE, %CallToKey%
 
-Gui, Add, Text, x10 y310 w50 h20 0x200 +Center, Restart
-Gui, Add, Edit, x70 y310 w75 h20 Uppercase vRestartE, %RestartKey%
+Gui, Add, Text, x10 y310 w280 h20 0x200 +Center, Global Setting
 
-Gui, Show, w300 h340, D2RSK %LOCAL_VERSION% by YouCha
+Gui, Add, Text, x10 y340 w50 h20 0x200 +Center, Restart
+Gui, Add, Edit, x70 y340 w75 h20 Uppercase vRestartE, %RestartKey%
+
+Gui, Show, w300 h370, D2RSK %LOCAL_VERSION% by YouCha
 
 Suspend, on
 
@@ -99,12 +103,13 @@ ExistKey := []
 
 Gui, Submit, NoHide
 
-checkUsed(LeftClickE, ExistKey)
-checkUsed(LeftShiftE, ExistKey)
-checkUsed(RightClickE, ExistKey)
-checkUsed(RightShiftE, ExistKey)
+; checkUsed(LeftClickE, ExistKey)
+; checkUsed(LeftShiftE, ExistKey)
+; checkUsed(RightClickE, ExistKey)
+; checkUsed(RightShiftE, ExistKey)
 
 SetHotkey(ShiftE, func("Shift"), ExistKey)
+SetCombineKey(BindE, ExistKey)
 
 checkUsed(BuffE, ExistKey)
 checkUsed(swapE, ExistKey)
@@ -178,6 +183,7 @@ IniWrite, %SwapE%, setting.ini, setting, SwapKey
 IniWrite, %CallToE%, setting.ini, setting, CallToKey
 IniWrite, %DelayE%, setting.ini, setting, DelayTime
 IniWrite, %RestartE%, setting.ini, setting, RestartKey
+IniWrite, %BindE%, setting.ini, setting, BindKey
 
 
 GuiControl, , LeftClickE, %LeftClickE%
@@ -190,6 +196,7 @@ GuiControl, , SwapE, %SwapE%
 GuiControl, , CallToE, %CallToE%
 GuiControl, , DelayE, %DelayE%
 GuiControl, , RestartE, %RestartE%
+GuiControl, , BindE, %BindE%
 
 MsgBox, 0x1000, , 저장됨.
 
@@ -208,9 +215,40 @@ PauseTool() {
     GuiControl, Enabled, SwapE
     GuiControl, Enabled, CallToE
     GuiControl, Enabled, DelayE
-    GuiControl, Enabled, RestartE
+    GuiControl, Enabled, BindE
 
     Suspend, On
+}
+
+SetCombineKey(ByRef editer, ExistKey) {
+    tempEdit := editer
+    Loop, parse, editer, `/
+    {
+        chunk := StrSplit(A_LoopField, ",")
+        keyButton := chunk[1]
+
+        func := func("SendKeys").bind(chunk)
+        if not (hasValue(ExistKey, keyButton)){
+
+            Hotkey, IfWinActive, ahk_exe D2R.exe
+            Hotkey, % keyButton, %func%, UseErrorLevel
+            if ErrorLevel in 2
+                StringReplace, tempEdit, tempEdit, %A_LoopField%, , All
+            else if ErrorLevel in 0
+                Hotkey, %keyButton%, On
+                ExistKey.Push(A_LoopField)
+        }
+        else{
+            StringReplace, tempEdit, tempEdit, %A_LoopField%, , All
+        }
+    }
+
+    GuiControl, , editer, % StringFormat(tempEdit)
+}
+
+SendKeys(chunk) {
+    for index, key in chunk
+        Send, {%key%}
 }
 
 ResumeTool() {
@@ -227,6 +265,7 @@ ResumeTool() {
     GuiControl, Disabled, CallToE
     GuiControl, Disabled, DelayE
     GuiControl, Disabled, RestartE
+    GuiControl, Disabled, BindE
 
     Suspend, Off
 }
@@ -310,6 +349,14 @@ StringFormat(string){
     }
 
     if(inStr(SubStr(string, 1,1), ",")){
+        string := SubStr(string, 2, StrLen(string)-1)
+    }
+
+    if(inStr(SubStr(string, 0), "/")){
+        string := SubStr(string, 1, StrLen(string)-1)
+    }
+
+    if(inStr(SubStr(string, 1,1), "/")){
         string := SubStr(string, 2, StrLen(string)-1)
     }
 
