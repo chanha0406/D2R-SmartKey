@@ -90,6 +90,9 @@ for index, key in ExistKey
 {
     Hotkey, IfWinActive, ahk_exe D2R.exe
     Hotkey, %key%, Off, UseErrorLevel
+
+    Hotkey, IfWinActive
+    Hotkey, %key%, Off, UseErrorLevel
 }
 
 ExistKey := []
