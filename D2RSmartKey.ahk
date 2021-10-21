@@ -216,6 +216,7 @@ PauseTool() {
     GuiControl, Enabled, SwapE
     GuiControl, Enabled, CallToE
     GuiControl, Enabled, DelayE
+    GuiControl, Enabled, RestartE
     GuiControl, Enabled, BindE
 
     Suspend, On
