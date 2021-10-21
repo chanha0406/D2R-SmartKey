@@ -151,11 +151,6 @@ Loop
     DoKeyState(LeftShiftE, func("ShiftLClick") )
     DoKeyState(RightClickE, func("RClick") )
     DoKeyState(RightShiftE, func("ShiftRClick"))
-    
-    IfWinActive ahk_exe D2R.exe
-    if GetKeyState("RBUTTON", "P"){
-        send {RButton}
-    }
 
     if GetKeyState(RestartE, "P") {
         PauseTool()
