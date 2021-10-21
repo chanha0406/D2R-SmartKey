@@ -17,6 +17,8 @@ CallTo - 디아2에서 설정한 콜투 버프 키 (무제한 추가 가능)
 
 Pause 키 누르면 실행/정지 Toogle 됩니다.
 
+[다운로드](https://github.com/chanha0406/D2R-SmartKey/releases/download/V1.8/d2smartkey.zip)
+
 [아이템 필터](https://github.com/chanha0406/D2R-YouCha-MOD)
 
 # Patch Note
