@@ -115,7 +115,7 @@ SetCombineKey(BindE, ExistKey)
 
 checkUsed(BuffE, ExistKey)
 checkUsed(swapE, ExistKey)
-checkUsed(CallToE, ExistKey)
+; checkUsed(CallToE, ExistKey)
 checkUsed(RestartE, ExistKey)
 
 buffFunc := Func("Buff").Bind(swapE, CallToE, DelayE)
@@ -151,6 +151,11 @@ Loop
     DoKeyState(LeftShiftE, func("ShiftLClick") )
     DoKeyState(RightClickE, func("RClick") )
     DoKeyState(RightShiftE, func("ShiftRClick"))
+    
+    IfWinActive ahk_exe D2R.exe
+    if GetKeyState("RBUTTON", "P"){
+        send {RButton}
+    }
 
     if GetKeyState(RestartE, "P") {
         PauseTool()
