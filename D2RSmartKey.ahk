@@ -2,8 +2,9 @@
 #SingleInstance Off
 #KeyHistory 0 
 #NoEnv
+#MaxHotkeysPerInterval, 2000
 
-LOCAL_VERSION = 1.7
+LOCAL_VERSION = 1.8
 
 ListLines, Off 
 SETCONTROLDELAY, -1
