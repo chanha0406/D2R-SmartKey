@@ -1,10 +1,10 @@
-﻿#NoTrayIcon 
+﻿; #NoTrayIcon 
 #SingleInstance Off
 #KeyHistory 0 
 #NoEnv
 #MaxHotkeysPerInterval, 2000
 
-LOCAL_VERSION = 1.8
+LOCAL_VERSION = 1.9
 
 ListLines, Off 
 SETCONTROLDELAY, -1
@@ -25,7 +25,8 @@ IniRead, BuffKey, setting.ini, setting, BuffKey
 IniRead, SwapKey, setting.ini, setting, SwapKey
 IniRead, CallToKey, setting.ini, setting, CallToKey
 IniRead, DelayTime, setting.ini, setting, DelayTime
-IniRead, RestartKey, setting.ini, setting, RestartKey
+IniRead, StartKey, setting.ini, setting, StartKey
+IniRead, StopKey, setting.ini, setting, StopKey
 IniRead, BindKey, setting.ini, setting, BindKey
 
 Gui, Add, Button, x10 y10 w70 h20 vRunBtn gRunFunc , 실행
@@ -66,8 +67,11 @@ Gui, Add, Edit, x215 y280 w75 h20 Uppercase vCallToE, %CallToKey%
 
 Gui, Add, Text, x10 y310 w280 h20 0x200 +Center, Global Setting
 
-Gui, Add, Text, x10 y340 w50 h20 0x200 +Center, Restart
-Gui, Add, Edit, x70 y340 w75 h20 Uppercase vRestartE, %RestartKey%
+Gui, Add, Text, x10 y340 w50 h20 0x200 +Center, Start
+Gui, Add, Edit, x70 y340 w75 h20 Uppercase vStartE, %StartKey%
+
+Gui, Add, Text, x155 y340 w50 h20 0x200 +Center, Stop
+Gui, Add, Edit, x215 y340 w75 h20 Uppercase vStopE, %StopKey%
 
 Gui, Show, w300 h370, D2RSK %LOCAL_VERSION% by YouCha
 
@@ -75,6 +79,11 @@ Suspend, on
 
 Hotkey, Pause, PauseFunc
 
+Return
+
+StartFunc:
+Suspend, Off
+Goto RunFunc
 Return
 
 PauseFunc:
@@ -116,7 +125,8 @@ SetCombineKey(BindE, ExistKey)
 checkUsed(BuffE, ExistKey)
 checkUsed(swapE, ExistKey)
 ; checkUsed(CallToE, ExistKey)
-checkUsed(RestartE, ExistKey)
+checkUsed(StartE, ExistKey)
+checkUsed(StopE, ExistKey)
 
 buffFunc := Func("Buff").Bind(swapE, CallToE, DelayE)
 
@@ -131,16 +141,6 @@ else{
 
 }
 
-Hotkey, IfWinActive
-Hotkey, ~%RestartE%, PauseFunc, UseErrorLevel
-if not(ErrorLevel = 0){
-    GuiControl, , RestartE,
-}
-else{
-    Hotkey, ~%RestartE% , On
-    ExistKey.Push(RestartE)
-}
-
 ResumeTool()
 
 Sleep, 500
@@ -152,7 +152,7 @@ Loop
     DoKeyState(RightClickE, func("RClick") )
     DoKeyState(RightShiftE, func("ShiftRClick"))
 
-    if GetKeyState(RestartE, "P") {
+    if GetKeyState(StopE, "P") {
         PauseTool()
         break
     }
@@ -184,7 +184,8 @@ IniWrite, %BuffE%, setting.ini, setting, BuffKey
 IniWrite, %SwapE%, setting.ini, setting, SwapKey
 IniWrite, %CallToE%, setting.ini, setting, CallToKey
 IniWrite, %DelayE%, setting.ini, setting, DelayTime
-IniWrite, %RestartE%, setting.ini, setting, RestartKey
+IniWrite, %StartE%, setting.ini, setting, StartKey
+IniWrite, %StopE%, setting.ini, setting, StopKey
 IniWrite, %BindE%, setting.ini, setting, BindKey
 
 
@@ -197,7 +198,8 @@ GuiControl, , BuffE, %BuffE%
 GuiControl, , SwapE, %SwapE%
 GuiControl, , CallToE, %CallToE%
 GuiControl, , DelayE, %DelayE%
-GuiControl, , RestartE, %RestartE%
+GuiControl, , StartE, %StartE%
+GuiControl, , StopE, %StopE%
 GuiControl, , BindE, %BindE%
 
 MsgBox, 0x1000, , 저장됨.
@@ -217,8 +219,19 @@ PauseTool() {
     GuiControl, Enabled, SwapE
     GuiControl, Enabled, CallToE
     GuiControl, Enabled, DelayE
-    GuiControl, Enabled, RestartE
+    GuiControl, Enabled, StartE
+    GuiControl, Enabled, StopE
     GuiControl, Enabled, BindE
+
+    Hotkey, IfWinActive
+    Hotkey, %StartE%, StartFunc, UseErrorLevel
+    if not(ErrorLevel = 0){
+        GuiControl, , StartE,
+    }
+    else{
+        Hotkey, %StartE% , On
+        ExistKey.Push(StartE)
+    }
 
     Suspend, On
 }
@@ -266,7 +279,8 @@ ResumeTool() {
     GuiControl, Disabled, SwapE
     GuiControl, Disabled, CallToE
     GuiControl, Disabled, DelayE
-    GuiControl, Disabled, RestartE
+    GuiControl, Disabled, StartE
+    GuiControl, Disabled, StopE
     GuiControl, Disabled, BindE
 
     Suspend, Off
