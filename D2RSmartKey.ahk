@@ -1,4 +1,4 @@
-﻿; #NoTrayIcon 
+﻿#NoTrayIcon 
 #SingleInstance Off
 #KeyHistory 0 
 #NoEnv
